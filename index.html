@@ -22,7 +22,7 @@
       margin-bottom: 5px;
       font-weight: bold;
     }
-    select, input[type="radio"] {
+    select {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
@@ -54,7 +54,7 @@
   <h2>룸 업그레이드 선택</h2>
   <div class="form-group">
     <label>인원 수 선택:</label>
-    <select id="guestCount">
+    <select id="guestCount" onchange="updateRoomOptions()">
       <option value="">선택</option>
       <option value="1">1명</option>
       <option value="2">2명</option>
@@ -65,26 +65,12 @@
 
   <div class="form-group">
     <label>1순위 객실:</label>
-    <select id="firstChoice">
-      <option value="">선택</option>
-      <option>디럭스 2인실</option>
-      <option>1등 2인 양실</option>
-      <option>1등 3인 화실</option>
-      <option>1등 4인 양실</option>
-      <option>1등 4인 화실</option>
-    </select>
+    <select id="firstChoice"></select>
   </div>
 
   <div class="form-group">
     <label>2순위 객실:</label>
-    <select id="secondChoice">
-      <option value="">선택</option>
-      <option>디럭스 2인실</option>
-      <option>1등 2인 양실</option>
-      <option>1등 3인 화실</option>
-      <option>1등 4인 양실</option>
-      <option>1등 4인 화실</option>
-    </select>
+    <select id="secondChoice"></select>
   </div>
 
   <div class="form-group">
@@ -120,6 +106,44 @@
   <div class="result-box" id="resultBox" style="display:none;"></div>
 
   <script>
+    const upgradePriority = {
+      1: {
+        primary: ["1등 2인 양실", "디럭스 트윈"],
+        secondary: []
+      },
+      2: {
+        primary: ["1등 2인 양실", "디럭스 트윈"],
+        secondary: ["1등 3인 화실"]
+      },
+      3: {
+        primary: ["1등 3인 화실"],
+        secondary: ["1등 4인 양실", "1등 4인 화실"]
+      },
+      4: {
+        primary: ["1등 2인 양실 2개", "1등 4인 양실", "1등 4인 화실"],
+        secondary: []
+      }
+    };
+
+    function updateRoomOptions() {
+      const count = document.getElementById("guestCount").value;
+      const firstSelect = document.getElementById("firstChoice");
+      const secondSelect = document.getElementById("secondChoice");
+
+      firstSelect.innerHTML = '<option value="">선택</option>';
+      secondSelect.innerHTML = '<option value="">선택</option>';
+
+      if (count && upgradePriority[count]) {
+        upgradePriority[count].primary.forEach(room => {
+          firstSelect.innerHTML += `<option>${room}</option>`;
+        });
+
+        upgradePriority[count].secondary.forEach(room => {
+          secondSelect.innerHTML += `<option>${room}</option>`;
+        });
+      }
+    }
+
     function showResult() {
       const guestCount = document.getElementById("guestCount").value;
       const firstChoice = document.getElementById("firstChoice").value;
@@ -128,12 +152,12 @@
       const oneWayOption = document.getElementById("oneWayOption").value;
       const fallbackOption = document.getElementById("fallbackOption").value;
 
-      if (!guestCount || !firstChoice || !secondChoice || !upgradeType || !oneWayOption || !fallbackOption) {
+      if (!guestCount || !firstChoice || (!secondChoice && upgradePriority[guestCount].secondary.length > 0) || !upgradeType || !oneWayOption || !fallbackOption) {
         alert("모든 항목을 선택해 주세요.");
         return;
       }
 
-      const result = `👤 인원 수: ${guestCount}명\n🏨 1순위 객실: ${firstChoice}\n🏨 2순위 객실: ${secondChoice}\n🚢 업그레이드 형태: ${upgradeType}\n🔧 왕복 불가 시: ${oneWayOption}\n🔧 업그레이드 불가 시: ${fallbackOption}`;
+      const result = `👤 인원 수: ${guestCount}명\n🏨 1순위 객실: ${firstChoice}\n🏨 2순위 객실: ${secondChoice || "-"}\n🚢 업그레이드 형태: ${upgradeType}\n🔧 왕복 불가 시: ${oneWayOption}\n🔧 업그레이드 불가 시: ${fallbackOption}`;
 
       const box = document.getElementById("resultBox");
       box.textContent = result;
